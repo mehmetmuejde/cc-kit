@@ -1,0 +1,35 @@
+{
+  "name": "cc-kit",
+  "version": "0.1.0",
+  "description": "Set up Claude Code on any machine from a Git repo of skills, hooks, agents, commands, CLAUDE.md sections and permissions.",
+  "type": "module",
+  "bin": {
+    "cc-kit": "bin/cc-kit.mjs"
+  },
+  "files": [
+    "bin",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "start": "node bin/cc-kit.mjs",
+    "test": "node --test test/"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "claude-code",
+    "skills",
+    "hooks",
+    "dotfiles",
+    "setup",
+    "cli"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@clack/prompts": "0.11.0",
+    "yaml": "^2.9.1"
+  }
+}
