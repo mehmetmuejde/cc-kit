@@ -7,7 +7,14 @@
     "email": "muejde.mehmet@gmail.com",
     "url": "https://mehmetmuejde.com"
   },
-  "homepage": "https://mehmetmuejde.com",
+  "homepage": "https://github.com/mehmetmuejde/cc-kit#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mehmetmuejde/cc-kit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mehmetmuejde/cc-kit/issues"
+  },
   "type": "module",
   "bin": {
     "cc-kit": "bin/cc-kit.mjs"
