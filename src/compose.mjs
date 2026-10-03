@@ -1,9 +1,12 @@
 // Builds CLAUDE.md and settings.json from the selected items.
 
+// The title is always added here, so the repo only holds real sections.
+const CLAUDE_MD_TITLE = "# CLAUDE.md";
+
 export function buildClaudeMd(sections) {
   const parts = sections.map((s) => s.body).filter(Boolean);
   if (!parts.length) return null;
-  return `${parts.join("\n\n")}\n`;
+  return `${[CLAUDE_MD_TITLE, ...parts].join("\n\n")}\n`;
 }
 
 function hookEntry(hook, dir) {

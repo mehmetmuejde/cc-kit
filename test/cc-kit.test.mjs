@@ -40,7 +40,7 @@ function fixtureRepo() {
   write(root, "hooks/guard/guard.py", "print('ok')\n");
   write(root, "hooks/notify/hook.yaml", "description: Notify\ndefault: false\nevent: Stop\ncommand: python3 {{dir}}/notify.py\n");
   write(root, "hooks/notify/notify.py", "print('n')\n");
-  write(root, "claude-md/00-kopf.md", "---\ntitle: Kopf\nrequired: true\n---\n\n# Regeln\n");
+  write(root, "claude-md/00-basics.md", "---\ntitle: Basics\nrequired: true\n---\n\n## Basics\n");
   write(root, "claude-md/10-stil.md", "---\ntitle: Stil\ndescription: Kurz antworten\n---\n\n## Stil\n\nKurz.\n");
   write(root, "claude-md/20-extra.md", "---\ntitle: Extra\ndefault: false\n---\n\n## Extra\n");
   write(root, "settings/base.yaml", "model: opus\nattribution:\n  commit: \"\"\n");
@@ -70,7 +70,7 @@ test("scan finds all item types and skips _ and . entries", () => {
   const ids = repo.items.map(key).sort();
   assert.deepEqual(ids, [
     "agents/reviewer",
-    "claudeMd/00-kopf",
+    "claudeMd/00-basics",
     "claudeMd/10-stil",
     "claudeMd/20-extra",
     "commands/hello",
@@ -86,7 +86,7 @@ test("scan finds all item types and skips _ and . entries", () => {
   assert.equal(alpha.files.length, 2);
   assert.equal(repo.items.find((i) => i.id === "beta").default, false);
   assert.equal(repo.items.find((i) => i.id === "kube").mode, "ask");
-  assert.equal(repo.items.find((i) => i.id === "00-kopf").required, true);
+  assert.equal(repo.items.find((i) => i.id === "00-basics").required, true);
 });
 
 test("base.yaml must not contain hooks or permissions", () => {
@@ -95,10 +95,10 @@ test("base.yaml must not contain hooks or permissions", () => {
   assert.throws(() => scanRepo(root), /does not belong here/);
 });
 
-test("CLAUDE.md is assembled in file order without frontmatter", () => {
+test("CLAUDE.md gets its title and the sections in file order without frontmatter", () => {
   const repo = scanRepo(fixtureRepo());
   const md = buildClaudeMd(repo.items.filter((i) => i.type === "claudeMd" && i.id !== "20-extra"));
-  assert.equal(md, "# Regeln\n\n## Stil\n\nKurz.\n");
+  assert.equal(md, "# CLAUDE.md\n\n## Basics\n\n## Stil\n\nKurz.\n");
 });
 
 test("settings keep foreign keys and replace managed ones", () => {
@@ -174,7 +174,7 @@ test("install replaces managed content and leaves runtime data alone", () => {
   assert.ok(!has("hooks/notify"));
   assert.ok(has("agents/reviewer.md"));
   assert.ok(has("commands/hello.md"));
-  assert.equal(fs.readFileSync(path.join(target, "CLAUDE.md"), "utf8"), "# Regeln\n\n## Stil\n\nKurz.\n");
+  assert.equal(fs.readFileSync(path.join(target, "CLAUDE.md"), "utf8"), "# CLAUDE.md\n\n## Basics\n\n## Stil\n\nKurz.\n");
 
   const settings = JSON.parse(fs.readFileSync(path.join(target, "settings.json"), "utf8"));
   assert.deepEqual(settings.statusLine, { command: "ccstatusline" });

@@ -65,8 +65,9 @@ default: true
 …
 ```
 
-Selected sections are concatenated in file-name order, without frontmatter. A section
-with `required: true` is always included and not asked for.
+cc-kit writes the `# CLAUDE.md` title itself, then the selected sections in file-name
+order, without frontmatter. A section with `required: true` is always included and not
+asked for.
 
 ### Permissions
 
