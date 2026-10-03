@@ -61,7 +61,7 @@ function readYaml(file) {
   try {
     return YAML.parse(fs.readFileSync(file, "utf8")) ?? {};
   } catch (err) {
-    throw new Error(`${file}: ungültiges YAML (${err.message.split("\n")[0]})`);
+    throw new Error(`${file}: invalid YAML (${err.message.split("\n")[0]})`);
   }
 }
 
@@ -114,7 +114,7 @@ function scanHooks(root) {
       const rel = path.join("hooks", e.name);
       const spec = readYaml(path.join(root, rel, "hook.yaml"));
       for (const key of ["event", "command"]) {
-        if (!spec[key]) throw new Error(`${rel}/hook.yaml: "${key}" fehlt`);
+        if (!spec[key]) throw new Error(`${rel}/hook.yaml: "${key}" is missing`);
       }
       return item(root, "hooks", e.name, walkFiles(root, rel).filter((f) => !f.endsWith("hook.yaml")), {
         description: spec.description,
@@ -148,7 +148,7 @@ function scanPermissions(root) {
       const rel = path.join(folder, e.name);
       const spec = readYaml(path.join(root, rel));
       const rules = Array.isArray(spec.rules) ? spec.rules.map(String) : [];
-      if (!rules.length) throw new Error(`${rel}: "rules" fehlt oder ist leer`);
+      if (!rules.length) throw new Error(`${rel}: "rules" is missing or empty`);
       const mode = ["allow", "ask", "deny"].includes(spec.default) ? spec.default : "ask";
       return item(root, "permissions", e.name.replace(/\.ya?ml$/, ""), [rel], {
         description: spec.description,
@@ -164,7 +164,7 @@ export function scanRepo(root) {
   const baseFile = path.join(root, "settings", "base.yaml");
   const base = fs.existsSync(baseFile) ? readYaml(baseFile) : {};
   for (const key of ["hooks", "permissions"]) {
-    if (key in base) throw new Error(`settings/base.yaml: "${key}" gehört nicht hierher, siehe hooks/ und settings/permissions/`);
+    if (key in base) throw new Error(`settings/base.yaml: "${key}" does not belong here, use hooks/ and settings/permissions/`);
   }
 
   const items = [

@@ -10,17 +10,17 @@ import { checkRemote, syncRepo, validateRepoUrl } from "../src/repo.mjs";
 import { key, scanRepo } from "../src/scan.mjs";
 import { diffItems, loadState } from "../src/state.mjs";
 
-const HELP = `cc-kit — Claude Code aus einem Git-Repo einrichten
+const HELP = `cc-kit — set up Claude Code from a Git repo
 
-  npx cc-kit                 interaktiv; fragt beim ersten Mal nach der Repo-URL
-  npx cc-kit update          neuer Repo-Stand, gleiche Auswahl, keine Rückfragen
+  npx cc-kit                 interactive; asks for the repo URL on the first run
+  npx cc-kit update          latest repo state, same selection, no questions
 
-Optionen
-  --repo <url>     Repo-URL setzen oder wechseln (SSH oder HTTPS)
-  --ref <branch>   anderen Branch oder Tag verwenden
-  --target <dir>   Zielordner (Standard: ~/.claude)
-  --dry-run        nur anzeigen, nichts schreiben
-  -h, --help       diese Hilfe
+Options
+  --repo <url>     set or change the repo URL (SSH or HTTPS)
+  --ref <branch>   use another branch or tag
+  --target <dir>   target folder (default: ~/.claude)
+  --dry-run        show what would happen, write nothing
+  -h, --help       show this help
 `;
 
 const LABELS = {
@@ -28,7 +28,7 @@ const LABELS = {
   hooks: "Hooks",
   agents: "Agents",
   commands: "Commands",
-  claudeMd: "CLAUDE.md-Abschnitte",
+  claudeMd: "CLAUDE.md sections",
 };
 
 const { values: args, positionals } = parseArgs({
@@ -49,7 +49,7 @@ if (args.help) {
 
 const command = positionals[0] ?? "setup";
 if (!["setup", "update"].includes(command)) {
-  process.stderr.write(`Unbekannter Befehl: ${command}\n\n${HELP}`);
+  process.stderr.write(`Unknown command: ${command}\n\n${HELP}`);
   process.exit(1);
 }
 const unattended = command === "update";
@@ -66,12 +66,12 @@ function bail(message) {
 }
 
 function guard(value) {
-  if (p.isCancel(value)) bail("Abgebrochen. Es wurde nichts verändert.");
+  if (p.isCancel(value)) bail("Cancelled. Nothing was changed.");
   return value;
 }
 
 function hint(item, diff) {
-  const flag = diff.added.includes(key(item)) ? "neu · " : diff.changed.includes(key(item)) ? "geändert · " : "";
+  const flag = diff.added.includes(key(item)) ? "new · " : diff.changed.includes(key(item)) ? "changed · " : "";
   const text = `${flag}${item.description}`;
   return text.length > 90 ? `${text.slice(0, 87)}…` : text;
 }
@@ -79,11 +79,11 @@ function hint(item, diff) {
 async function askRepoUrl(previous) {
   if (args.repo) return args.repo;
   if (previous?.repoUrl) return previous.repoUrl;
-  if (unattended) bail("Noch kein Repo eingerichtet. Erst `npx cc-kit` interaktiv ausführen.");
+  if (unattended) bail("No repo configured yet. Run `npx cc-kit` interactively first.");
   return guard(
     await p.text({
-      message: "URL deines Konfigurations-Repos (SSH oder HTTPS)",
-      placeholder: "ssh://git@git.example.com/du/claude-config.git",
+      message: "URL of your configuration repo (SSH or HTTPS)",
+      placeholder: "ssh://git@git.example.com/you/claude-config.git",
       validate: validateRepoUrl,
     }),
   );
@@ -93,7 +93,7 @@ async function pickItems(type, items, preselected, diff) {
   const options = items.map((it) => ({ value: key(it), label: it.label, hint: hint(it, diff) }));
   const chosen = guard(
     await p.multiselect({
-      message: `${LABELS[type]} (Leertaste wählt, Enter bestätigt)`,
+      message: `${LABELS[type]} (space to toggle, enter to confirm)`,
       options,
       initialValues: options.map((o) => o.value).filter((v) => preselected.has(v)),
       required: false,
@@ -107,10 +107,10 @@ async function main() {
   const previous = loadState(target);
 
   if (fs.existsSync(path.join(target, ".git"))) {
-    p.log.warn(`${target} ist ein Git-Repo. cc-kit überschreibt dort verwaltete Dateien.`);
-    if (unattended) bail("Abgebrochen: Zielordner ist ein Git-Repo.");
-    const go = guard(await p.confirm({ message: "Trotzdem fortfahren?", initialValue: false }));
-    if (!go) bail("Abgebrochen. Es wurde nichts verändert.");
+    p.log.warn(`${target} is a git repo. cc-kit will overwrite managed files in it.`);
+    if (unattended) bail("Cancelled: target folder is a git repo.");
+    const go = guard(await p.confirm({ message: "Continue anyway?", initialValue: false }));
+    if (!go) bail("Cancelled. Nothing was changed.");
   }
 
   const repoUrl = await askRepoUrl(previous);
@@ -119,35 +119,35 @@ async function main() {
 
   const spin = p.spinner();
   if (!previous || args.repo) {
-    spin.start("Prüfe Zugriff auf das Repo");
+    spin.start("Checking access to the repo");
     const remoteError = checkRemote(repoUrl);
     if (remoteError) {
-      spin.stop("Kein Zugriff");
-      bail(`${remoteError}\nStimmt die URL, und ist der SSH-Key dieses Geräts beim Git-Server hinterlegt?`);
+      spin.stop("No access");
+      bail(`${remoteError}\nIs the URL right, and is this machine's SSH key registered with the git server?`);
     }
-    spin.stop("Repo erreichbar");
+    spin.stop("Repo reachable");
   }
 
-  spin.start("Hole den aktuellen Stand");
+  spin.start("Fetching the latest state");
   let synced;
   let repo;
   try {
     synced = syncRepo(repoUrl, { ref: args.ref });
     repo = scanRepo(synced.dir);
   } catch (err) {
-    spin.stop("Fehlgeschlagen");
+    spin.stop("Failed");
     bail(err.message);
   }
-  spin.stop(`Stand ${synced.commit}${previous?.commit && previous.commit !== synced.commit ? ` (vorher ${previous.commit})` : ""}`);
+  spin.stop(`At ${synced.commit}${previous?.commit && previous.commit !== synced.commit ? ` (was ${previous.commit})` : ""}`);
 
   const diff = diffItems(previous?.hashes, repo.items);
   if (previous) {
     const lines = [
-      diff.added.length ? `neu:       ${diff.added.join(", ")}` : null,
-      diff.changed.length ? `geändert:  ${diff.changed.join(", ")}` : null,
-      diff.removed.length ? `entfernt:  ${diff.removed.join(", ")}` : null,
+      diff.added.length ? `new:       ${diff.added.join(", ")}` : null,
+      diff.changed.length ? `changed:   ${diff.changed.join(", ")}` : null,
+      diff.removed.length ? `removed:   ${diff.removed.join(", ")}` : null,
     ].filter(Boolean);
-    p.note(lines.length ? lines.join("\n") : "Keine Änderungen seit dem letzten Lauf.", "Änderungen im Repo");
+    p.note(lines.length ? lines.join("\n") : "No changes since the last run.", "Changes in the repo");
   }
 
   const byType = (type) => repo.items.filter((it) => it.type === type);
@@ -175,7 +175,7 @@ async function main() {
     allowIds = new Set(
       guard(
         await p.multiselect({
-          message: "Was soll Claude ohne Nachfrage dürfen?",
+          message: "What may Claude do without asking?",
           options: sets.map(option),
           initialValues: [...allowIds],
           required: false,
@@ -187,7 +187,7 @@ async function main() {
       ? new Set(
           guard(
             await p.multiselect({
-              message: "Was soll Claude nie dürfen? (Rest: Claude fragt jedes Mal)",
+              message: "What must Claude never do? (everything else: Claude asks each time)",
               options: rest.map(option),
               initialValues: [...denyIds].filter((id) => !allowIds.has(id)),
               required: false,
@@ -201,7 +201,7 @@ async function main() {
   let addScratch = false;
   if (!hasLine(excludes, ".scratch/") && !unattended) {
     addScratch = guard(
-      await p.confirm({ message: `.scratch/ global ignorieren? (trägt es in ${excludes} ein)`, initialValue: true }),
+      await p.confirm({ message: `Ignore .scratch/ globally? (adds it to ${excludes})`, initialValue: true }),
     );
   }
 
@@ -212,28 +212,28 @@ async function main() {
   const toRemove = managedEntries(target);
 
   const summary = [
-    `Ziel:        ${target}`,
+    `Target:      ${target}`,
     `Repo:        ${repoUrl} @ ${synced.commit}`,
     ...Object.entries(LABELS).map(([type, label]) => `${label.padEnd(12).slice(0, 12)} ${counts[type] ?? 0}`),
-    `Erlaubt:     ${allow.map((s) => s.id).join(", ") || "–"}`,
-    `Verboten:    ${deny.map((s) => s.id).join(", ") || "–"}`,
-    `Ersetzt:     ${toRemove.length} vorhandene Einträge in skills/, agents/, commands/, hooks/, CLAUDE.md`,
+    `Allowed:     ${allow.map((s) => s.id).join(", ") || "–"}`,
+    `Denied:      ${deny.map((s) => s.id).join(", ") || "–"}`,
+    `Replaced:    ${toRemove.length} existing entries in skills/, agents/, commands/, hooks/, CLAUDE.md`,
     `Backup:      ${backupDirFor(target)}`,
   ].join("\n");
 
   if (args["dry-run"]) {
-    p.note(summary, "Testlauf, nichts wird verändert");
-    p.outro("Fertig (Testlauf).");
+    p.note(summary, "Dry run, nothing will change");
+    p.outro("Done (dry run).");
     return;
   }
 
   if (!unattended) {
-    p.note(summary, "Zusammenfassung");
-    const ok = guard(await p.confirm({ message: "Jetzt installieren?", initialValue: true }));
-    if (!ok) bail("Abgebrochen. Es wurde nichts verändert.");
+    p.note(summary, "Summary");
+    const ok = guard(await p.confirm({ message: "Install now?", initialValue: true }));
+    if (!ok) bail("Cancelled. Nothing was changed.");
   }
 
-  spin.start("Installiere");
+  spin.start("Installing");
   try {
     const result = install({
       repoDir: synced.dir,
@@ -245,13 +245,13 @@ async function main() {
       meta: { repoUrl, commit: synced.commit, targetForCommands },
     });
     if (addScratch) ensureLine(excludes, ".scratch/", "Temporary notes, never committed");
-    spin.stop("Installiert");
+    spin.stop("Installed");
     if (result.backup) p.log.info(`Backup: ${result.backup}`);
-    if (addScratch) p.log.info(`.scratch/ in ${excludes} eingetragen`);
-    p.outro("Claude Code neu starten, damit alles geladen wird.");
+    if (addScratch) p.log.info(`Added .scratch/ to ${excludes}`);
+    p.outro("Restart Claude Code to load everything.");
   } catch (err) {
-    spin.stop("Fehlgeschlagen");
-    bail(`${err.message}\nDas Backup liegt unter ${backupDirFor(target)}.`);
+    spin.stop("Failed");
+    bail(`${err.message}\nBackup is in ${backupDirFor(target)}.`);
   }
 }
 

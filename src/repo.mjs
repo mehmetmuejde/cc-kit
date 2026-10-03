@@ -7,9 +7,9 @@ import path from "node:path";
 // Credentials embedded in an HTTPS URL would end up in the state file.
 export function validateRepoUrl(url) {
   const value = String(url ?? "").trim();
-  if (!value) return "Bitte eine Repo-URL angeben.";
+  if (!value) return "Please enter a repo URL.";
   if (/^https?:\/\/[^/@]+:[^/@]+@/i.test(value)) {
-    return "Bitte keine Zugangsdaten in der URL. SSH verwenden oder den Git-Credential-Helper.";
+    return "Please keep credentials out of the URL. Use SSH or the git credential helper.";
   }
   return null;
 }

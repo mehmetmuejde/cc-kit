@@ -54,7 +54,7 @@ function fixtureRepo() {
 }
 
 test("rejects credentials in https urls", () => {
-  assert.match(validateRepoUrl("https://user:token@github.com/a/b.git"), /Zugangsdaten/);
+  assert.match(validateRepoUrl("https://user:token@github.com/a/b.git"), /credentials/);
   assert.equal(validateRepoUrl("ssh://git@host:2222/a/b.git"), null);
   assert.equal(validateRepoUrl("https://github.com/a/b.git"), null);
 });
@@ -92,7 +92,7 @@ test("scan finds all item types and skips _ and . entries", () => {
 test("base.yaml must not contain hooks or permissions", () => {
   const root = fixtureRepo();
   write(root, "settings/base.yaml", "hooks: {}\n");
-  assert.throws(() => scanRepo(root), /gehört nicht hierher/);
+  assert.throws(() => scanRepo(root), /does not belong here/);
 });
 
 test("CLAUDE.md is assembled in file order without frontmatter", () => {
@@ -220,9 +220,9 @@ test("cli update installs from a repo and detects changes on the next run", () =
 
   const second = runCli(["update"], home);
   assert.equal(second.status, 0, second.stderr + second.stdout);
-  assert.match(second.stdout, /neu:\s+skills\/gamma/);
-  assert.match(second.stdout, /geändert:\s+skills\/alpha/);
-  assert.match(second.stdout, /entfernt:\s+commands\/hello/);
+  assert.match(second.stdout, /new:\s+skills\/gamma/);
+  assert.match(second.stdout, /changed:\s+skills\/alpha/);
+  assert.match(second.stdout, /removed:\s+commands\/hello/);
   assert.ok(!fs.existsSync(path.join(target, "commands/hello.md")));
   assert.ok(!fs.existsSync(path.join(target, "skills/gamma")), "new items are not auto-selected");
   assert.match(fs.readFileSync(path.join(target, "skills/alpha/SKILL.md"), "utf8"), /changed/);

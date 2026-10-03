@@ -2,6 +2,12 @@
   "name": "cc-kit",
   "version": "0.1.0",
   "description": "Set up Claude Code on any machine from a Git repo of skills, hooks, agents, commands, CLAUDE.md sections and permissions.",
+  "author": {
+    "name": "Mehmet Müjde",
+    "email": "muejde.mehmet@gmail.com",
+    "url": "https://mehmetmuejde.com"
+  },
+  "homepage": "https://mehmetmuejde.com",
   "type": "module",
   "bin": {
     "cc-kit": "bin/cc-kit.mjs"

@@ -12,8 +12,6 @@ npx cc-kit            # first run asks for your repo URL, then lets you pick
 npx cc-kit update     # latest repo state, same selection, no questions
 ```
 
-> The interactive prompts are currently in German.
-
 ## Why
 
 - **One source of truth.** Your setup lives in Git, not scattered across machines.
