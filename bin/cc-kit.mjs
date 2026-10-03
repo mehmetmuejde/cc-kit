@@ -12,8 +12,8 @@ import { diffItems, loadState } from "../src/state.mjs";
 
 const HELP = `cc-kit — set up Claude Code from a Git repo
 
-  npx cc-kit                 interactive; asks for the repo URL on the first run
-  npx cc-kit update          latest repo state, same selection, no questions
+  npx @mehmetmuejde/cc-kit                 interactive; asks for the repo URL on the first run
+  npx @mehmetmuejde/cc-kit update          latest repo state, same selection, no questions
 
 Options
   --repo <url>     set or change the repo URL (SSH or HTTPS)
@@ -79,7 +79,7 @@ function hint(item, diff) {
 async function askRepoUrl(previous) {
   if (args.repo) return args.repo;
   if (previous?.repoUrl) return previous.repoUrl;
-  if (unattended) bail("No repo configured yet. Run `npx cc-kit` interactively first.");
+  if (unattended) bail("No repo configured yet. Run `npx @mehmetmuejde/cc-kit` interactively first.");
   return guard(
     await p.text({
       message: "URL of your configuration repo (SSH or HTTPS)",

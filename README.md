@@ -3,13 +3,21 @@
 Set up Claude Code on any machine from a Git repo you own.
 
 Keep your skills, hooks, agents, commands, CLAUDE.md sections and permission rules in
-one repository. On each machine, run `npx cc-kit`, pick what this machine should get,
+one repository. On each machine, run `npx @mehmetmuejde/cc-kit`, pick what this machine should get,
 and cc-kit writes it into `~/.claude`. Change something in the repo, run
-`npx cc-kit update` everywhere, done.
+`npx @mehmetmuejde/cc-kit update` everywhere, done.
 
 ```sh
-npx cc-kit            # first run asks for your repo URL, then lets you pick
-npx cc-kit update     # latest repo state, same selection, no questions
+npx @mehmetmuejde/cc-kit           # first run asks for your repo URL, then lets you pick
+npx @mehmetmuejde/cc-kit update    # latest repo state, same selection, no questions
+```
+
+Or install it once and use the short command:
+
+```sh
+npm install -g @mehmetmuejde/cc-kit
+cc-kit
+cc-kit update
 ```
 
 ## Why

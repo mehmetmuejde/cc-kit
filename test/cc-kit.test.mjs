@@ -232,5 +232,5 @@ test("cli update without any repo fails with a hint", () => {
   const home = tmp("home");
   const run = runCli(["update"], home);
   assert.notEqual(run.status, 0);
-  assert.match(run.stdout + run.stderr, /npx cc-kit/);
+  assert.match(run.stdout + run.stderr, /No repo configured yet/);
 });

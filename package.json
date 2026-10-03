@@ -1,5 +1,5 @@
 {
-  "name": "cc-kit",
+  "name": "@mehmetmuejde/cc-kit",
   "version": "0.1.0",
   "description": "Set up Claude Code on any machine from a Git repo of skills, hooks, agents, commands, CLAUDE.md sections and permissions.",
   "author": {
